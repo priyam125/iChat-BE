@@ -39,6 +39,21 @@ class AuthController {
         data: validatedPayload,
       });
 
+      const jwtPayload = {
+        id: user.id,
+        email: user.email,
+      };
+
+      const token = jwt.sign(jwtPayload, process.env.JWT_SECRET, {
+        expiresIn: maxAge,
+      });
+
+      res.cookie("access_token", token, {
+        maxAge: maxAge,
+        secure: true,
+        sameSite: "none",
+      });
+
       return res.status(201).json({ message: "Account created successfully", user });
     } catch (error) {
       if (error instanceof errors.E_VALIDATION_ERROR) {

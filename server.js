@@ -10,7 +10,6 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
-import prisma from './config/db.config.js';
 dotenv.config();
 
 const app = express();
@@ -28,13 +27,23 @@ app.use(cors(
 app.use(cookieParser());
 app.use(bodyParser.json());
 
+// This line of code makes the 'uploads/profile/' folder contents accessible
+// via web requests. For example, if a user uploads a profile picture, the
+// picture will be stored in this folder, and the line of code makes it
+// possible to access the picture via a URL like this:
+//   http://localhost:5001/uploads/profile/123456789.jpg
+// This is necessary because the profile picture is referenced in the user's
+// profile document in the database, and the React frontend code will try
+// to fetch the picture from this URL when rendering the user's profile.
+app.use('/uploads/profile', express.static('uploads/profile'));
+
 app.get('/', (req, res) => {
     res.json({ message: 'Hello from the server!' })
 })
 
 //Routes
-import authRoutes from './routes/authRoute.js';
-app.use('/api', authRoutes);
+import Routes from "./routes/index.js"
+app.use(Routes)
 
 
 app.listen(PORT, () => {
