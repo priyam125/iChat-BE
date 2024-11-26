@@ -149,6 +149,11 @@ class AuthController {
     }
   }
 
+  static async logout(req, res) {
+    res.clearCookie("access_token");
+    return res.send({ message: "Logged out successfully" });
+  }
+
   static async getUser(req, res) {
     try {
       // const user = await prisma.user.findFirst();
