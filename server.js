@@ -10,6 +10,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
+import setupSocket from './socket.js';
 dotenv.config();
 
 const app = express();
@@ -45,7 +46,8 @@ app.get('/', (req, res) => {
 import Routes from "./routes/index.js"
 app.use(Routes)
 
-
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 })
+
+setupSocket(server)

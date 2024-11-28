@@ -3,7 +3,6 @@
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,15 +13,40 @@ datasource db {
 }
 
 model User {
-  //yaha pe we are connecting the id of prisma with the _id of mongodb
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  email String @unique
-  password String
-  firstName String?
-  lastName String?
-  image String?
-  color Int?
-  profileSetup Boolean? @default(false)
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now())
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  email        String     @unique
+  password     String
+  firstName    String?
+  lastName     String?
+  image        String?
+  color        Int?
+  profileSetup Boolean?   @default(false)
+  created_at   DateTime   @default(now())
+  updated_at   DateTime   @default(now())
+
+  // Relations
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+}
+model Message {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId  // MongoDB ObjectId as the primary key.
+  senderId    String   @db.ObjectId                                   // Foreign key linking to the sender's User ID.
+  recipientId String?  @db.ObjectId                                   // Foreign key linking to the recipient's User ID; optional as `recipient` may be null (e.g., group messages).
+  messageType MessageType                                             // Enum to specify the type of message (text or file).
+  content     String?  @db.String                                     // Optional text content; required only for "text" messages (handled in app logic).
+  fileUrl     String?  @db.String                                     // Optional file URL; required only for "file" messages (handled in app logic).
+  timestamp   DateTime @default(now())                                // Timestamp for when the message was sent; defaults to the current time.
+
+  // Relations to the User model
+  sender    User      @relation("SentMessages", fields: [senderId], references: [id]) // Links the message to the sender.
+  recipient User?     @relation("ReceivedMessages", fields: [recipientId], references: [id]) // Links the message to the recipient (optional).
+
+  // Indexes for better query performance
+  @@index([senderId], map: "senderId_idx")                           // Index on `senderId` for fast lookups by sender.
+  @@index([recipientId], map: "recipientId_idx")                     // Index on `recipientId` for fast lookups by recipient.
+}
+
+enum MessageType {
+  text
+  file
 }
