@@ -6,7 +6,7 @@ import {renameSync, unlink} from "fs";
 class ProfileController {
   static async updateProfile(req, res) {
     try {
-      console.log("req.user", req.user);
+      // console.log("req.user", req.user);
       const userId = req.user.id;
 
       const payload = req.body;

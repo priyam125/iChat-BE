@@ -160,7 +160,7 @@ class AuthController {
       // return res.send(user);
 
       //we get the user id from the request passed by the middleware
-      console.log("req.user", req.user);
+      // console.log("req.user", req.user);
       const userId = req.user.id;
       const user = await prisma.user.findUnique({
         where: {
