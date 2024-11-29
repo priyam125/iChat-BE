@@ -2,14 +2,14 @@ import prisma from "../config/db.config.js"; // import prisma from "../config/db
 
 class ContactsController {
   static async searchContacts(req, res) {
-    console.log("Reached here");
+    // console.log("Reached here");
 
-    console.log("req.body", req.body);
+    // console.log("req.body", req.body);
     
     try {
       const searchTerm = req.body.data;
 
-      console.log("searchTerm", searchTerm);
+      // console.log("searchTerm", searchTerm);
 
       if (searchTerm === undefined || searchTerm === null) {
         res
@@ -71,7 +71,7 @@ class ContactsController {
       //   ]
       // })
 
-      console.log("contacts", contacts);
+      // console.log("contacts", contacts);
 
       return res.status(200).json({contacts});
     } catch (error) {
