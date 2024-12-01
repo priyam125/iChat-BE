@@ -13,40 +13,72 @@ datasource db {
 }
 
 model User {
-  id           String     @id @default(auto()) @map("_id") @db.ObjectId
-  email        String     @unique
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  email        String   @unique
   password     String
   firstName    String?
   lastName     String?
   image        String?
   color        Int?
-  profileSetup Boolean?   @default(false)
-  created_at   DateTime   @default(now())
-  updated_at   DateTime   @default(now())
+  profileSetup Boolean? @default(false)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @default(now())
 
   // Relations
-  sentMessages     Message[] @relation("SentMessages")
-  receivedMessages Message[] @relation("ReceivedMessages")
+  sentMessages     Message[]       @relation("SentMessages")
+  receivedMessages Message[]       @relation("ReceivedMessages")
+  channels         ChannelMember[] // Relation to the join model
+  adminChannels    Channel[]       @relation("ChannelAdmin") // Links to the Channel model for admin relationships
 }
+
 model Message {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId  // MongoDB ObjectId as the primary key.
-  senderId    String   @db.ObjectId                                   // Foreign key linking to the sender's User ID.
-  recipientId String?  @db.ObjectId                                   // Foreign key linking to the recipient's User ID; optional as `recipient` may be null (e.g., group messages).
-  messageType MessageType                                             // Enum to specify the type of message (text or file).
-  content     String?  @db.String                                     // Optional text content; required only for "text" messages (handled in app logic).
-  fileUrl     String?  @db.String                                     // Optional file URL; required only for "file" messages (handled in app logic).
-  timestamp   DateTime @default(now())                                // Timestamp for when the message was sent; defaults to the current time.
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId // MongoDB ObjectId as the primary key.
+  senderId    String      @db.ObjectId // Foreign key linking to the sender's User ID.
+  recipientId String?     @db.ObjectId // Foreign key linking to the recipient's User ID; optional as `recipient` may be null (e.g., group messages).
+  messageType MessageType // Enum to specify the type of message (text or file).
+  content     String?     @db.String // Optional text content; required only for "text" messages (handled in app logic).
+  fileUrl     String?     @db.String // Optional file URL; required only for "file" messages (handled in app logic).
+  timestamp   DateTime    @default(now()) // Timestamp for when the message was sent; defaults to the current time.
 
   // Relations to the User model
-  sender    User      @relation("SentMessages", fields: [senderId], references: [id]) // Links the message to the sender.
-  recipient User?     @relation("ReceivedMessages", fields: [recipientId], references: [id]) // Links the message to the recipient (optional).
+  sender    User     @relation("SentMessages", fields: [senderId], references: [id]) // Links the message to the sender.
+  recipient User?    @relation("ReceivedMessages", fields: [recipientId], references: [id]) // Links the message to the recipient (optional).
+  channelId String?  @db.ObjectId // Optional field to support messages without a channel
+  channel   Channel? @relation("ChannelMessages", fields: [channelId], references: [id]) // Inverse of Channel.messages
 
   // Indexes for better query performance
-  @@index([senderId], map: "senderId_idx")                           // Index on `senderId` for fast lookups by sender.
-  @@index([recipientId], map: "recipientId_idx")                     // Index on `recipientId` for fast lookups by recipient.
+  @@index([senderId], map: "senderId_idx") // Index on `senderId` for fast lookups by sender.
+  @@index([recipientId], map: "recipientId_idx") // Index on `recipientId` for fast lookups by recipient.
+  @@index([channelId], map: "channelId_idx")
 }
 
 enum MessageType {
   text
   file
+}
+
+model Channel {
+  id        String          @id @default(auto()) @map("_id") @db.ObjectId
+  name      String          @db.String
+  members   ChannelMember[] // Relation to the join model
+  adminId   String          @db.ObjectId
+  admin     User            @relation("ChannelAdmin", fields: [adminId], references: [id])
+  messages  Message[]       @relation("ChannelMessages") // Links to the Message model
+  createdAt DateTime        @default(now()) @map("createdAt")
+  updatedAt DateTime        @updatedAt @map("updatedAt")
+}
+
+// Explicit join model for many-to-many relationship between User and Channel
+model ChannelMember {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String @db.ObjectId
+  channelId String @db.ObjectId
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id])
+  channel Channel @relation(fields: [channelId], references: [id])
+
+  // Indexes for efficient lookups
+  @@index([userId], map: "userId_idx")
+  @@index([channelId], map: "channelId_idx")
 }

@@ -6,5 +6,6 @@ const router = Router();
 
 router.post('/conatcts/search', verifyToken, ContactsController.searchContacts);
 router.get('/conatcts/get-contacts-for-dm', verifyToken, ContactsController.getContactsForDmList);
+router.get('/conatcts/get-all-contacts', verifyToken, ContactsController.getAllContacts);
 
 export default router
